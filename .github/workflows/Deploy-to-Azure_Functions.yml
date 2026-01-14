@@ -20,37 +20,51 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      
+      - name: Create and start virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
 
       - name: Install dependencies
         run: |
           cd ${{ env.APP_PATH }}
           python -m pip install --upgrade pip
-          pip install -r requirements.txt --target=".python_packages/lib/site-packages"
+          pip install -r requirements.txt
+      
+      - name: Zip artifact for deployment
+        run: |
+          cd ${{ env.APP_PATH }}
+          zip -r release.zip ./*
 
       - name: Upload artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: ${{ env.APP_PATH }}
+          path: |
+            ${{ env.APP_PATH }}/release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    environment:
-      name: 'production'
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: python-app
-          path: .
+
+      - name: Unzip artifact for deployment
+        run: |
+          unzip release.zip
+          rm release.zip
 
       - name: Azure Login
         uses: azure/login@v2
@@ -64,4 +78,4 @@ jobs:
         with:
           app-name: ${{ github.event.inputs.functionName }}
           package: .
-          scm-do-build-during-deployment: false
+          slot-name: 'Production'
