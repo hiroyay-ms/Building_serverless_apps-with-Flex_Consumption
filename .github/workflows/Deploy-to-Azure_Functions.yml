@@ -34,7 +34,7 @@ jobs:
           pip install -r requirements.txt --target=".python_packages/lib/site-packages"
 
       - name: Upload artifact for deployment
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: ${{ env.APP_PATH }}
@@ -47,7 +47,7 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: python-app
           path: .
