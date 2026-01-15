@@ -1,5 +1,4 @@
 azure-functions
-pandas
 aiohttp  
 azure-identity  
 azure-storage-blob
