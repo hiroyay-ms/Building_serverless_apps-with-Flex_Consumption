@@ -35,10 +35,10 @@ async def read_filter_date_from_blob(blob_service_client):
         last_run_str = json_data.get("last_run")
         logging.info(f"前回実行日: {last_run_str}, 件数: {json_data.get('processed_count')}, ステータス: {json_data.get('status')}")
 
-        last_run_str_iso = last_run_str.replace("Z", "+00:00").replace(tzinfo=None)
+        last_run_str_iso = datetime.fromisoformat(last_run_str.replace("Z", "+00:00")).replace(tzinfo=None)
         logging.info(f"ISOフォーマット変換後: {last_run_str_iso}")
 
-        return datetime.fromisoformat(last_run_str_iso)
+        return last_run_str_iso
     except Exception as e:
         logging.warning(f"last_run.json 読み込み失敗、デフォルト日付を使用: {e}")
         return datetime(2025, 1, 1)
