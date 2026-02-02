@@ -35,13 +35,13 @@ async def read_filter_date_from_blob(blob_service_client):
         last_run_str = json_data.get("last_run")
         logging.info(f"前回実行日: {last_run_str}, 件数: {json_data.get('processed_count')}, ステータス: {json_data.get('status')}")
 
-        last_run_str_iso = last_run_str.replace("Z", "+00:00")
+        last_run_str_iso = last_run_str.replace("Z", "+00:00").replace(tzinfo=None)
         logging.info(f"ISOフォーマット変換後: {last_run_str_iso}")
 
         return datetime.fromisoformat(last_run_str_iso)
     except Exception as e:
         logging.warning(f"last_run.json 読み込み失敗、デフォルト日付を使用: {e}")
-        return datetime(2025, 1, 1, tzinfo=timezone.utc)
+        return datetime(2025, 1, 1)
 
 
 async def update_filter_date_in_blob(blob_service_client, new_date: datetime, processed_count: int, status: str):
@@ -64,7 +64,8 @@ async def merge_and_mask_batch_blob_flat(incident_blob_name: str, journal_blob_n
     credential = DefaultAzureCredential()
     blob_service_client = BlobServiceClient(account_url=BLOB_URL, credential=credential)
 
-    filter_date = await read_filter_date_from_blob(blob_service_client)
+    FILTER_DATE = await read_filter_date_from_blob(blob_service_client)
+    logging.info(f"フィルタ日付: {FILTER_DATE.isoformat()}")
 
     source_container_client = blob_service_client.get_container_client(source_container_name)
     target_container_client = blob_service_client.get_container_client(target_container_name)
